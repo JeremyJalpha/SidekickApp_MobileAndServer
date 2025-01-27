@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SidekickApp_MAUIHybridMobile", "SidekickApp_MAUIHybridMobile\SidekickApp_MAUIHybridMobile.csproj", "{74FA5A70-3E21-4E41-82E7-357CFE683699}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SidekickApp_WebAPI", "SidekickApp_WebAPI\SidekickApp_WebAPI.csproj", "{0BD54CA6-2F9D-4DF4-AC04-549A7E054860}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{74FA5A70-3E21-4E41-82E7-357CFE683699}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74FA5A70-3E21-4E41-82E7-357CFE683699}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74FA5A70-3E21-4E41-82E7-357CFE683699}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BD54CA6-2F9D-4DF4-AC04-549A7E054860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BD54CA6-2F9D-4DF4-AC04-549A7E054860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BD54CA6-2F9D-4DF4-AC04-549A7E054860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BD54CA6-2F9D-4DF4-AC04-549A7E054860}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
