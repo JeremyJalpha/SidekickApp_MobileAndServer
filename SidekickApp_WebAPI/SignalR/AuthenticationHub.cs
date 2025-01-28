@@ -11,7 +11,7 @@ namespace SidekickApp_WebAPI.SignalR
             {
                 // Handle the valid JWT (e.g., authenticate the user or store it)
                 await HandleJwtAsync(jwt);
-                await Clients.All.ReceiveLoginResultAsync("Server says: Hello World");
+                await Clients.Caller.ReceiveLoginResultAsync("Server says: Hello World");
             }
             else
             {
