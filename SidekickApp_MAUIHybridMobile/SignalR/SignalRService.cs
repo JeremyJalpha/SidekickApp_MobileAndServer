@@ -1,36 +1,34 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 
-namespace SidekickApp_MAUIHybridMobile.SignalR
+public class SignalRService
 {
-    public class SignalRService
+    private HubConnection? _hubConnection;
+
+    public async Task StartConnectionAsync(string hubUrl)
     {
-        private HubConnection? _hubConnection;
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(hubUrl)
+            .Build();
 
-        public async Task StartConnectionAsync(string hubUrl)
+        await _hubConnection.StartAsync();
+    }
+
+    public async Task SendJwtAsync(string jwt)
+    {
+        if (_hubConnection == null)
         {
-            _hubConnection = new HubConnectionBuilder()
-                .WithUrl(hubUrl)
-                .Build();
-
-            await _hubConnection.StartAsync();
+            throw new InvalidOperationException("Connection has not been started.");
         }
+        await _hubConnection.InvokeAsync("SendJwtToServer", jwt);
+    }
 
-        public async Task SendMessageAsync(string user, string message)
+    // Register the ReceiveLoginResultAsync handler
+    public void RegisterReceiveLoginResultHandler(Action<string> handler)
+    {
+        if (_hubConnection == null)
         {
-            if (_hubConnection == null)
-            {
-                throw new InvalidOperationException("Connection has not been started.");
-            }
-            await _hubConnection.InvokeAsync("SendMessage", user, message);
+            throw new InvalidOperationException("Connection has not been started.");
         }
-
-        public void RegisterReceiveMessageHandler(Action<string, string> handler)
-        {
-            if (_hubConnection == null)
-            {
-                throw new InvalidOperationException("Connection has not been started.");
-            }
-            _hubConnection.On("ReceiveMessage", handler);
-        }
+        _hubConnection.On("ReceiveLoginResultAsync", handler);
     }
 }

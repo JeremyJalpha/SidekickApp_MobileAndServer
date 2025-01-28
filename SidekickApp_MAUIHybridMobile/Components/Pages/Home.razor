@@ -1,5 +1,4 @@
-﻿@using SidekickApp_MAUIHybridMobile.SignalR;
-@page "/"
+﻿@page "/"
 @inject SignalRService SignalRService
 
 <h1>Hello, world!</h1>
@@ -12,11 +11,16 @@ Welcome to your new app.
 @code {
     private async Task StartSignalRConnection()
     {
-        await SignalRService.StartConnectionAsync("https://your-server-url/chatHub");
+        await SignalRService.StartConnectionAsync("https://your-server-url/AuthenticationHub");
+        // Register the handler after starting the connection
+        SignalRService.RegisterReceiveLoginResultHandler((result) =>
+        {
+            Console.WriteLine($"Login Result: {result}");
+        });
     }
 
     private async Task SendSampleMessage()
     {
-        await SignalRService.SendMessageAsync("User1", "Hello World!");
+        await SignalRService.SendJwtAsync("sample-jwt-token");
     }
 }
