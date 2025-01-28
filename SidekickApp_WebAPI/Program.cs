@@ -1,4 +1,4 @@
-using SidekickApp_WebAPI;
+using SidekickApp_WebAPI.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 

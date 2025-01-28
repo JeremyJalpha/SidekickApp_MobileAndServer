@@ -1,4 +1,4 @@
-namespace SidekickApp_WebAPI
+namespace SidekickApp_WebAPI.Models
 {
     public class WeatherForecast
     {

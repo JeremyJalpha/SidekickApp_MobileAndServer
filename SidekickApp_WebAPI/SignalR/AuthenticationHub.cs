@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 
-namespace SidekickApp_WebAPI
+namespace SidekickApp_WebAPI.SignalR
 {
     public class AuthenticationHub : Hub<IAuthenticationClient>
     {

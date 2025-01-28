@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SidekickApp_WebAPI.Models;
 
 namespace SidekickApp_WebAPI.Controllers
 {
