@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace SidekickApp_WebAPI
 {
-    public class LocationHub : Hub<IAuthenticationClient>
+    public class AuthenticationHub : Hub<IAuthenticationClient>
     {
         public async Task SendJwtToServer(string jwt)
         {
