@@ -1,0 +1,37 @@
+﻿@page "/"
+@using MAS_Shared.MASConstants
+@using MAS_Shared.Security
+@using SidekickApp.Services
+@using Microsoft.Extensions.Logging
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthProvider
+@inject CustomToastService ToastService
+@inject AppStateTracker AppState
+@inject ILogger<Landing> Logger
+
+<h3>🔐 Waiting for deep link...</h3>
+<p>SidekickApp is standing by to receive your token via secure intent.</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await SignalR.JWTService.RetrieveTokenAsync();
+
+        if (token != null && !MAS_Shared.Security.JwtHelperUtil.ClientSideJWTPrevalidation(
+                    token,
+                    MASConstants.ExpectedAudiences,
+                    MASConstants.ExpectedIssuer))
+        {
+            Logger.LogWarning("🧊 Token missing or invalid — holding on splash screen.");
+            return;
+        }
+
+        if (AuthProvider is SidekickAuthProvider sidekickAuth)
+        {
+            sidekickAuth.NotifyAuthenticationStateChanged();
+        }
+
+        Logger.LogInformation("🎉 Token validated — redirecting to /home.");
+        Navigation.NavigateTo("/home", forceLoad: true);
+    }
+}

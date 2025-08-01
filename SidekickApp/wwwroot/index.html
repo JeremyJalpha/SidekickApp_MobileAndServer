@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>SidekickApp</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="SidekickApp.styles.css" />
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+
+    <div class="status-bar-safe-area"></div>
+
+    <div id="app">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <style>
+        .custom-toast {
+            position: fixed;
+            z-index: 9999;
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            max-width: 80%;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+            .custom-toast.show {
+                opacity: 1;
+            }
+
+            .custom-toast.success {
+                background-color: #4CAF50;
+            }
+
+            .custom-toast.error {
+                background-color: #F44336;
+            }
+
+            .custom-toast.info {
+                background-color: #2196F3;
+            }
+
+            .custom-toast.warning {
+                background-color: #FFC107;
+            }
+    </style>
+    <script>
+        function isMobile() {
+            return /Mobi|Android|iPhone/i.test(navigator.userAgent);
+        }
+
+        window.showToast = function (message, type = 'info', duration = 3000, position = null) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = 1055;
+                document.body.appendChild(container);
+            }
+
+            const pos = (position ?? (isMobile() ? 'center' : 'bottom-right')).toLowerCase();
+
+            // Reposition container
+            switch (pos) {
+                case 'center':
+                    container.className = 'position-fixed top-50 start-50 translate-middle p-3';
+                    break;
+                case 'top':
+                case 'top-right':
+                    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                    break;
+                case 'bottom':
+                case 'bottom-right':
+                    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                    break;
+                default:
+                    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                    break;
+            }
+
+            const toastId = 'toast-' + Date.now();
+            let bgColor, textColor, icon;
+            switch (type) {
+                case 'success': bgColor = 'bg-success'; textColor = 'text-white'; icon = '✅'; break;
+                case 'error': bgColor = 'bg-danger'; textColor = 'text-white'; icon = '❌'; break;
+                case 'warning': bgColor = 'bg-warning'; textColor = 'text-dark'; icon = '⚠️'; break;
+                case 'info': bgColor = 'bg-info'; textColor = 'text-white'; icon = 'ℹ️'; break;
+                default: bgColor = 'bg-secondary'; textColor = 'text-white'; icon = '📢'; break;
+            }
+
+            const toastHtml = `
+                <div id="${toastId}" class="toast show ${bgColor} ${textColor}" role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 250px;">
+                    <div class="toast-header ${bgColor} ${textColor}">
+                        <span class="me-2">${icon}</span>
+                        <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">${message}</div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', toastHtml);
+
+            // Auto-hide after duration
+            setTimeout(() => {
+                const el = document.getElementById(toastId);
+                if (el) {
+                    el.classList.remove('show');
+                    setTimeout(() => el.remove(), 500);
+                }
+            }, duration);
+
+            // Manual close
+            const el = document.getElementById(toastId);
+            el?.querySelector('.btn-close')
+                ?.addEventListener('click', () => {
+                    el.classList.remove('show');
+                    setTimeout(() => el.remove(), 500);
+                });
+        };
+    </script>
+
+
+
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+
+</body>
+
+</html>

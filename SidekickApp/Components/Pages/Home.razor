@@ -1,0 +1,152 @@
+﻿@page "/home"
+@using System.Threading.Tasks
+@using Blazored.Toast
+@using MAS_Shared.MASConstants
+@using MAS_Shared.Models
+@using MAS_Shared.Security
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.Extensions.Logging
+@using Microsoft.Maui.Storage
+@using SidekickApp
+@using SidekickApp.Components
+@using SidekickApp.Helpers
+@using SidekickApp.Services
+@using SidekickApp.SignalR
+@using System.Security.Claims
+
+@inject IJSRuntime JS
+@inject SignalRService SignalRService
+@inject NavigationManager Navigation
+@inject AppStateTracker AppState
+@inject CustomToastService ToastService
+@inject AuthenticationStateProvider AuthProvider
+@inject UILogSink LogSink
+@inject ILogger<Home> Logger
+
+@implements IDisposable
+
+<h2>Set your availability:</h2>
+
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;">
+    <button @onclick="ShareLocation"
+            style="background-color: @btnSendLocColor; padding: 8px 16px; margin-bottom: 12px; border: none; border-radius: 4px;">
+        @btnSendLocText
+    </button>
+
+    <div style="height: calc(60vh); width: calc(70vw - 8px); overflow-y: auto; border: 1px solid #ccc; padding: 4px; background-color: #f9f9f9; margin-right: 4px;">
+        @foreach (var entry in LogSink.Entries.Reverse())
+        {
+            <div class="log-entry text-@GetColor(entry.Level)">
+                [@entry.Timestamp] @entry.Category ➜ @entry.Message
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string btnSendLocText => AppState.IsSharingLocation ? "Stop loc" : "Send loc";
+    private string btnSendLocColor => AppState.IsSharingLocation ? "green" : "red";
+
+    private string GetColor(LogLevel level) => level switch
+    {
+        LogLevel.Error => "red",
+        LogLevel.Warning => "orange",
+        LogLevel.Information => "green",
+        _ => "grey"
+    };
+
+    public void Dispose()
+    {
+        SignalRService.OnSendLastKnownLocOfClientFailed -= HandleSendLastKnownLocOfClientFailed;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.LastVisitedRoute = "/home";
+        SignalRService.OnSendLastKnownLocOfClientFailed += HandleSendLastKnownLocOfClientFailed;
+
+        if (!AppState.UiHydrated)
+            return;
+
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!(user.Identity?.IsAuthenticated ?? false))
+        {
+            await ToastService.ShowToast("You're not signed in yet.", LogLevel.Warning);
+            return;
+        }
+
+        var token = await JWTService.RetrieveTokenAsync();
+        if (string.IsNullOrEmpty(token))
+        {
+            await ToastService.ShowToast("🏁 Home.razor ➜ No token available, cannot proceed.", LogLevel.Warning);
+            return;
+        }
+
+        var isValid = await DeepLinkTokenHelper.TryUpgradeTokenInnerAsync(token, SignalRService, Logger);
+        if (!isValid)
+        {
+            await ToastService.ShowToast("🏁 Home.razor ➜ Token is invalid, please request a new login token.", LogLevel.Warning);
+            return;
+        }
+
+        await ToastService.ShowToast("🏁 Home.razor ➜ Token is valid and SignalR connected", LogLevel.Information);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleSendLastKnownLocOfClientFailed(string errorMessage)
+    {
+        Logger.LogError("SignalR ➜ Failed to send last known location. Error: {Error}", errorMessage ?? "Unknown error");
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RelayLocationStateAsync(bool isJoining, GPSLocationDTO coords)
+    {
+        var result = isJoining
+            ? await SignalRService.JoinLocationRequestGroup(coords)
+            : await SignalRService.ExitLocationRequestGroup(coords);
+
+        if (result == null)
+        {
+            var msg = isJoining ? "You're now sharing your location." : "Location sharing stopped.";
+            await ToastService.ShowToast(msg, LogLevel.Information);
+        }
+        else
+        {
+            var msg = isJoining ? "Unable to start location sharing." : "Failed to stop location sharing.";
+            await ToastService.ShowToast(msg, LogLevel.Warning);
+        }
+    }
+
+    private async Task ShareLocation()
+    {
+        try
+        {
+            var success = await SignalRAuthHelper.EnsureConnectedWithGPSAsync(
+                AuthProvider,
+                SignalRService,
+                ToastService,
+                Logger
+            );
+
+            if (!success)
+                return;
+
+            var coords = await GPSLocationService.GetCurrentLocationAsync();
+            if (coords == null)
+            {
+                await ToastService.ShowToast("Unable to fetch GPS coordinates.", LogLevel.Warning);
+                return;
+            }
+
+            await RelayLocationStateAsync(!AppState.IsSharingLocation, coords);
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Unexpected error: {ex.Message}", LogLevel.Error);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

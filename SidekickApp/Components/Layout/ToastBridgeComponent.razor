@@ -1,0 +1,36 @@
+﻿@using Microsoft.Extensions.Logging
+@using SidekickApp.Services
+@inject CustomToastService ToastService
+@inject AppStateTracker AppState
+@inject ILogger<ToastBridgeComponent> Logger
+@inject CustomToastService ToastService
+
+@code {
+    private bool toastHandled;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || toastHandled || string.IsNullOrEmpty(AppState.DeferredToastMessage))
+            return;
+
+        toastHandled = true;
+
+        try
+        {
+            var message = AppState.DeferredToastMessage;
+            var type = AppState.DeferredToastType ?? LogLevel.Information;
+
+            await ToastService.ShowToast(message, type);
+            Logger.Log(type, $"ToastBridge ➜ {message}");
+
+            AppState.DeferredToastMessage = null;
+            AppState.DeferredToastType = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "ToastBridgeComponent failed to display toast.");
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+}
